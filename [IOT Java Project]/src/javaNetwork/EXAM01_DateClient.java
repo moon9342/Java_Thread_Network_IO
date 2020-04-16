@@ -1,6 +1,8 @@
 package javaNetwork;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
@@ -43,6 +45,16 @@ public class EXAM01_DateClient extends Application {
 			    //    ServerSocket에 접속
 				try {
 					Socket s = new Socket("localhost",5556);
+					BufferedReader br = new BufferedReader(
+							new InputStreamReader(
+									s.getInputStream()));
+					// 서버가 보내준 데이터를 받아요!!
+					String msg = br.readLine();
+					printMSG(msg);
+					
+					// 처리가 끝나면 Stream을 닫고 Socket을 닫아요!
+					br.close();
+					s.close();
 					
 				} catch (UnknownHostException e1) {
 					// TODO Auto-generated catch block
