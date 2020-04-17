@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,16 +24,47 @@ import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
 // Server쪽 프로그램
-// javaFX로 구현할 꺼예요~!
 
-class EchoRunnable implements Runnable {
+// Thread에 의해서 공유되는 공용객체를 만들기 위한 class를 정의
+class ChatSharedObject {
+	// Thread에 의해서 공유되어야 하는 데이터
+	// 모든 클라이언트에 대한 Thread를 만들기위해 필요한 Runnable객체를 저장.
+	List<ChatRunnable> clients = new ArrayList<ChatRunnable>();
+	
+	// 이 데이터를 제어하기 위해서 필요한 method
+	// 새로운 사용자가 접속했을 때 clients안에 새로운 사용자에 대한 Runnable객체를 저장
+	public void add(ChatRunnable r) {
+		clients.add(r);
+	}
+	// 사용자가 접속을 종료했을 대 clients안에 있는 사용자를 삭제
+	public void remove(ChatRunnable r) {
+		clients.remove(r);
+	}
+	// 클라이언트가 데이터를 보내줬을 때 채팅메시지를 Broadcast하는 method
+	public void broadcast(String msg) {
+		for(ChatRunnable client : clients) {
+			client.getPr().println(msg);
+			client.getPr().flush();
+		}
+	}	
+}
+
+class ChatRunnable implements Runnable {
 
 	private Socket s;
 	private BufferedReader br;
 	private PrintWriter pr;
+	private ChatSharedObject shared;
+		
+	public PrintWriter getPr() {
+		return pr;
+	}
+
 	// constructor injection이라고 불리는 객체전달(주입)방식
-	EchoRunnable(Socket s) {
+	ChatRunnable(Socket s, ChatSharedObject shared) {
 		this.s = s;
+		this.shared = shared;
+		
 		try {
 			this.br = new BufferedReader(
 					new InputStreamReader(s.getInputStream()));
@@ -52,8 +85,11 @@ class EchoRunnable implements Runnable {
 				if(line.equals("@EXIT")) {
 					break;
 				}
-				pr.println(line);
-				pr.flush();
+				// 자신과 연결된 클라이언트에게만 문자열을 전달
+				//pr.println(line);
+				//pr.flush();
+				// 모든 클라이언트에게 문자열을 전달하기 위해서 공용객체를 활용
+				shared.broadcast(line);
 			}
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -63,7 +99,7 @@ class EchoRunnable implements Runnable {
 	
 }
 
-public class EXAM03_MultiEchoServer extends Application {
+public class EXAM04_ChatServer extends Application {
 
 	// 필요한 field를 선언
 	private TextArea ta;
@@ -72,6 +108,8 @@ public class EXAM03_MultiEchoServer extends Application {
 	// 필요한 갯수만큼 Thread를 가지고 있는 Thread Pool을 생성)
 	private ExecutorService excutorService = 
 			Executors.newCachedThreadPool();
+	// 공용객체를 하나 만들어요!(공용객체는 Thread에 의해서 공유되는 객체고 1개만 존재)
+	private ChatSharedObject shared = new ChatSharedObject();
 	
 	// 서버쪽 네트워크 프로그램이니까 ServerSocket이 존재해야 해요!
 	private ServerSocket server;
@@ -115,17 +153,18 @@ public class EXAM03_MultiEchoServer extends Application {
 						server = new ServerSocket(9999);
 						while(true) {
 							Socket s = server.accept();
-							// 클라이언트와 연결된 소켓s를 가지고 별도의 Thread가 실행
-							// Thread를 실행시키는 코드가 나오면 되요!
-							EchoRunnable r = new EchoRunnable(s);
-							excutorService.execute(r);
+							ChatRunnable chat = new ChatRunnable(s,shared);
+							// 공용객체에 새로운 사용자 추가
+							shared.add(chat);
 							
-							printMSG("[새로운 클라이언트 접속]");
-						}
+							excutorService.execute(chat);
+						}						
 					} catch (IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
-					} 					
+					}
+					
+					 					
 				};
 				excutorService.execute(runnable);  // Thread 실행
 						
