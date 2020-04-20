@@ -1,13 +1,19 @@
 package javaNetwork;
 
+import java.util.Optional;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
@@ -60,6 +66,93 @@ public class EXAM05_MultiRoomChatClient extends Application {
 		gridpane.add(participantsListView, 0, 1);
 		
 		root.setRight(gridpane); // 화면오른쪽에 GridPane을 부착
+		
+		connBtn = new Button("Chat 서버와 접속");
+		connBtn.setPrefSize(150, 40);  
+		connBtn.setOnAction(e->{
+			// 서버 접속 버튼을 누르면 사용자 ID부터 받을꺼예요!
+			Dialog<String> dialog = 
+					new TextInputDialog("자신의 NickName을 입력하세요!");
+			dialog.setTitle("닉네임설정");
+			dialog.setHeaderText("닉네임 설정입니다. 적절한 이름을 입력하세요!");
+			
+			Optional<String> result = dialog.showAndWait();
+			String entered = "";
+			if(result.isPresent()) {
+				// 닉네임을 입력하고 확인버튼을 누른경우!
+				entered = result.get();
+			}
+			
+			// 원래는 서버에 접속해서 방 목록을 받아와야 해요!
+			roomListView.getItems().add("서울,경기 등산모임");
+			roomListView.getItems().add("기사시험공부방");
+			roomListView.getItems().add("Java공부방");
+			printMSG("채팅서버에 접속했어요!");
+			printMSG(entered + " 님 환영합니다.!!");
+			userID = entered;			
+		});
+		
+		createRoomBtn = new Button("채팅방 생성");
+		createRoomBtn.setPrefSize(150, 40);
+		createRoomBtn.setOnAction(e -> {
+			Dialog<String> dialog = 
+					new TextInputDialog("생성할 방 이름을 입력하세요!");
+			dialog.setTitle("채팅방 생성");
+			dialog.setHeaderText("채팅방 생성입니다. 적절한 이름을 입력하세요!");
+			
+			Optional<String> result = dialog.showAndWait();
+			String entered = "";
+			if(result.isPresent()) {
+				// 방이름을 입력하고 확인버튼을 누른경우!
+				entered = result.get();
+			}	
+			
+			// 방 이름이 서버에 전달이 되어야 해요!
+			roomListView.getItems().add(entered);
+			printMSG("채팅방 : " + entered + "가 추가되었습니다.");
+		});
+		
+		connRoomBtn = new Button("채팅방 접속");
+		connRoomBtn.setPrefSize(150, 40);
+		connRoomBtn.setOnAction(e->{
+			// 1. 어떤방을 선택했는지를 알아와요!
+			String roomName = 
+					roomListView.getSelectionModel().getSelectedItem();
+			printMSG(roomName + "방에 입장했습니다.");
+			
+			// 서버에 접속해서 현재 방에 참여하고 있는 참여자 목록을 받아와요!!
+			// 목록을 받아오면 참여자 리스트뷰에 출력
+			participantsListView.getItems().add("홍길동");
+			participantsListView.getItems().add("유관순");
+			participantsListView.getItems().add("신사임당");
+			participantsListView.getItems().add("얼큰우동");
+			
+			// 밑 부분의 메뉴를 채팅을 입력할 수 있는 화면을 전환.
+			FlowPane inputFlowPane = new FlowPane();
+			inputFlowPane.setPadding(new Insets(10,10,10,10));
+			inputFlowPane.setPrefSize(700, 40);
+			inputFlowPane.setHgap(10);
+			
+			TextField inputTF = new TextField();
+			inputTF.setPrefSize(400, 40);
+			
+			inputFlowPane.getChildren().add(inputTF);
+			
+			root.setBottom(inputFlowPane);
+		});
+		
+		
+		FlowPane menuFlowPane = new FlowPane();
+		menuFlowPane.setPadding(new Insets(10,10,10,10));
+		menuFlowPane.setPrefSize(700, 40);
+		menuFlowPane.setHgap(10);
+		menuFlowPane.getChildren().add(connBtn);
+		menuFlowPane.getChildren().add(createRoomBtn);
+		menuFlowPane.getChildren().add(connRoomBtn);
+		
+		
+		
+		root.setBottom(menuFlowPane);
 		
 		// 창을띄우기 위한 코드
 		Scene scene = new Scene(root);
