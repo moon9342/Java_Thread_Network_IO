@@ -43,7 +43,7 @@ class ChatSharedObject {
 		clients.remove(r);
 	}
 	// 클라이언트가 데이터를 보내줬을 때 채팅메시지를 Broadcast하는 method
-	public void broadcast(String msg) {
+	public void   broadcast(String msg) {
 		for(ChatRunnable client : clients) {
 			client.getPr().println(msg);
 			client.getPr().flush();
@@ -195,7 +195,13 @@ public class EXAM04_ChatServer extends Application {
 		primaryStage.setScene(scene);
 		primaryStage.setTitle("멀티 Echo Server!!");
 		primaryStage.setOnCloseRequest(e->{
-			
+			try {
+				server.close();
+				excutorService.shutdownNow();
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 		});
 		primaryStage.show();
 	}
