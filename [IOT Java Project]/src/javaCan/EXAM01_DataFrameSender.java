@@ -8,9 +8,11 @@ import gnu.io.SerialPort;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
 // JavaFX를 이용해서 구현해 보아요!
@@ -59,8 +61,43 @@ public class EXAM01_DataFrameSender extends Application {
 		}
 	}
 	
+	// Data Frame을 전송하는 method
+	private void sendDataFrame(String msg) {
+		// 데이터 프레임 전송
+		// 프로토콜을 알아야지 그 형식대로 message를 만들어서 전송
+		// 전달된 문자열은 CAN protocol에 맞춰서 만든 문자열 이예요!
+		// CRC를 계산하기 위해서 약간의 처리를 해야해요!
+		// msg = "W28000000061100002200000033"
+		int checksumData = 0;
+		msg = msg.toUpperCase();
+		char c[] = msg.toCharArray();
+		for( char cc : c) {
+			checksumData += cc;
+		}
+		checksumData = (checksumData & 0xFF);
+		// checksumData는 정수예요. 이걸 HexString으로 변환해서 붙여야 해요!
+		// 최종 데이터 프레임은
+		String sendMsg = ":" + msg + 
+				Integer.toHexString(checksumData) + "\r";
+		
+		printMSG("보내려는 데이터는 : " + sendMsg);
+		
+		byte[] send = sendMsg.getBytes();
+		try {
+			out.write(send);      // 데이터 전송
+			printMSG("성공적으로 전송되었습니다.!!");
+		} catch (Exception e) {
+			System.out.println(e);
+		}
+		
+		
+		
+		
+		
+	}
+	
 	@Override
-	public void start(Stage arg0) throws Exception {
+	public void start(Stage primaryStage) throws Exception {
 		BorderPane root = new BorderPane();
 		root.setPrefSize(700, 500);
 		
@@ -71,7 +108,7 @@ public class EXAM01_DataFrameSender extends Application {
 		connBtn.setPrefSize(200, 50);
 		connBtn.setPadding(new Insets(10));
 		connBtn.setOnAction(e -> {
-			String PortNum = "COM15";
+			String PortNum = "COM13";
 			connectPort(PortNum);
 		});
 		
@@ -80,8 +117,25 @@ public class EXAM01_DataFrameSender extends Application {
 		sendBtn.setPadding(new Insets(10));
 		sendBtn.setOnAction(e -> {
 			// DataFrame 전송
+			String msg = "W28000000061100002200000033";
+			sendDataFrame(msg);
 		});
 		
+		FlowPane flowpane = new FlowPane();
+		flowpane.setPrefSize(700, 50);
+		flowpane.setHgap(10);
+		flowpane.getChildren().add(connBtn);
+		flowpane.getChildren().add(sendBtn);
+	
+		root.setBottom(flowpane);
+		
+		Scene scene = new Scene(root);
+		primaryStage.setScene(scene);
+		primaryStage.setTitle("CAN 통신");
+		primaryStage.setOnCloseRequest(e->{
+			System.exit(0);
+		});
+		primaryStage.show();
 	}
 	
 	
