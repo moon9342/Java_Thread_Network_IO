@@ -78,7 +78,7 @@ public class EXAM01_DataFrameSender extends Application {
 		// checksumData는 정수예요. 이걸 HexString으로 변환해서 붙여야 해요!
 		// 최종 데이터 프레임은
 		String sendMsg = ":" + msg + 
-				Integer.toHexString(checksumData) + "\r";
+				Integer.toHexString(checksumData).toUpperCase() + "\r";
 		
 		printMSG("보내려는 데이터는 : " + sendMsg);
 		

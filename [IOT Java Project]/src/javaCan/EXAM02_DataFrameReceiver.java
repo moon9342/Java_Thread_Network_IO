@@ -35,7 +35,7 @@ public class EXAM02_DataFrameReceiver extends Application {
 
 		@Override
 		public void serialEvent(SerialPortEvent event) {
-			System.out.println("여기오니??");
+			
 			if(event.getEventType() == 
 					SerialPortEvent.DATA_AVAILABLE) {
 				
@@ -76,7 +76,7 @@ public class EXAM02_DataFrameReceiver extends Application {
 				if( commPort instanceof SerialPort ) {
 					serialPort = (SerialPort)commPort;
 					serialPort.setSerialPortParams(
-							9600, 
+							38400, 
 							SerialPort.DATABITS_8, 
 							SerialPort.STOPBITS_1, 
 							SerialPort.PARITY_NONE);
@@ -86,8 +86,9 @@ public class EXAM02_DataFrameReceiver extends Application {
 					serialPort.addEventListener(new PortListener());
 					serialPort.notifyOnDataAvailable(true);
 					printMSG("포트 연결을 성공했어요!!");
-				}
-				
+				} else {
+					System.out.println("Serial Port만 사용가능!");
+				}				
 			}
 		} catch (Exception e) {
 			System.out.println(e);
@@ -111,7 +112,7 @@ public class EXAM02_DataFrameReceiver extends Application {
 		// checksumData는 정수예요. 이걸 HexString으로 변환해서 붙여야 해요!
 		// 최종 데이터 프레임은
 		String sendMsg = ":" + msg + 
-				Integer.toHexString(checksumData) + "\r";
+				Integer.toHexString(checksumData).toUpperCase() + "\r";
 		
 		printMSG("보내려는 데이터는 : " + sendMsg);
 		
@@ -150,13 +151,23 @@ public class EXAM02_DataFrameReceiver extends Application {
 			"00000000";			
 			sendDataFrame(envString);
 		});
-		
+
+		revEnableBtn = new Button("수신가능버튼");
+		revEnableBtn.setPrefSize(200, 50);
+		revEnableBtn.setPadding(new Insets(10));
+		revEnableBtn.setOnAction(e -> {
+			// 
+			String revString = "G" + "11";			
+			sendDataFrame(revString);
+		});
+
 				
 		FlowPane flowpane = new FlowPane();
 		flowpane.setPrefSize(700, 50);
 		flowpane.setHgap(10);
 		flowpane.getChildren().add(connBtn);
 		flowpane.getChildren().add(envBtn);
+		flowpane.getChildren().add(revEnableBtn);
 	
 		root.setBottom(flowpane);
 		
