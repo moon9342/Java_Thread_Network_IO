@@ -22,7 +22,7 @@ import javafx.stage.Stage;
 public class EXAM02_DataFrameReceiver extends Application {
 
 	private TextArea textarea;
-	private Button connBtn, envBtn, revEnableBtn, revDisableBtn;
+	private Button connBtn, envBtn, revEnableBtn;
 	
 	private CommPortIdentifier portIdentifier;
 	private CommPort commPort;
@@ -32,13 +32,10 @@ public class EXAM02_DataFrameReceiver extends Application {
 	private BufferedInputStream bin;
 	
 	class PortListener implements SerialPortEventListener {
-
 		@Override
-		public void serialEvent(SerialPortEvent event) {
-			
+		public void serialEvent(SerialPortEvent event) {			
 			if(event.getEventType() == 
-					SerialPortEvent.DATA_AVAILABLE) {
-				
+					SerialPortEvent.DATA_AVAILABLE) {			
 				byte[] readBuffer = new byte[128];
 				try {
 					while(bin.available() > 0 ) {
@@ -52,11 +49,10 @@ public class EXAM02_DataFrameReceiver extends Application {
 				} catch (Exception e) {
 					System.out.println(e);
 				}
-			}
-			
-		}
-		
+			}			
+		}		
 	}
+	
 	private void printMSG(String msg) {       // textarea에 메시지 
 		                                      // 출력용도
 		Platform.runLater(() -> {
